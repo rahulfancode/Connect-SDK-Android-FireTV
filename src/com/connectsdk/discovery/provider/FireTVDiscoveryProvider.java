@@ -21,6 +21,7 @@
 package com.connectsdk.discovery.provider;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.amazon.whisperplay.fling.media.controller.DiscoveryController;
 import com.amazon.whisperplay.fling.media.controller.RemoteMediaPlayer;
@@ -162,10 +163,16 @@ public class FireTVDiscoveryProvider implements DiscoveryProvider {
         return foundServices.isEmpty();
     }
 
+    @Override
+    public void setScanIntensity(ScanIntensity intensity) {
+
+    }
+
     private void notifyListenersThatServiceAdded(final ServiceDescription serviceDescription) {
         Util.runOnUI(new Runnable() {
             @Override
             public void run() {
+                Log.i("ConnectSDK", "FireTVService notifyListenersThatServiceAdded");
                 for (DiscoveryProviderListener listener : serviceListeners) {
                     listener.onServiceAdded(FireTVDiscoveryProvider.this, serviceDescription);
                 }
