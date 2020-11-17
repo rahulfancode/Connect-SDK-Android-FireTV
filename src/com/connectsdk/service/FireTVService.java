@@ -21,6 +21,8 @@
 package com.connectsdk.service;
 
 
+import android.util.Log;
+
 import com.amazon.whisperplay.fling.media.controller.RemoteMediaPlayer;
 import com.amazon.whisperplay.fling.media.service.CustomMediaPlayer;
 import com.amazon.whisperplay.fling.media.service.MediaPlayerInfo;
@@ -55,7 +57,7 @@ import java.util.concurrent.Future;
  * functionality:
  * - Media playback
  * - Media control
- *
+ * <p>
  * Using Connect SDK for discovery/control of FireTV devices will result in your app complying with
  * the Fling SDK terms of service.
  */
@@ -195,6 +197,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Get MediaInfo available only during playback otherwise returns an error
+     *
      * @param listener
      */
     @Override
@@ -205,21 +208,21 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
             asyncFuture = remoteMediaPlayer.getMediaInfo();
             handleAsyncFutureWithConversion(listener, asyncFuture,
                     new ConvertResult<MediaInfo, MediaPlayerInfo>() {
-                @Override
-                public MediaInfo convert(MediaPlayerInfo data) throws JSONException {
-                    JSONObject metaJson = null;
-                    metaJson = new JSONObject(data.getMetadata());
-                    List<ImageInfo> images = null;
-                    if (metaJson.has(META_ICON_IMAGE)) {
-                        images = new ArrayList<ImageInfo>();
-                        images.add(new ImageInfo(metaJson.getString(META_ICON_IMAGE)));
-                    }
-                    MediaInfo mediaInfo = new MediaInfo(data.getSource(),
-                            metaJson.getString(META_MIME_TYPE), metaJson.getString(META_TITLE),
-                            metaJson.getString(META_DESCRIPTION), images);
-                    return mediaInfo;
-                }
-            }, error);
+                        @Override
+                        public MediaInfo convert(MediaPlayerInfo data) throws JSONException {
+                            JSONObject metaJson = null;
+                            metaJson = new JSONObject(data.getMetadata());
+                            List<ImageInfo> images = null;
+                            if (metaJson.has(META_ICON_IMAGE)) {
+                                images = new ArrayList<ImageInfo>();
+                                images.add(new ImageInfo(metaJson.getString(META_ICON_IMAGE)));
+                            }
+                            MediaInfo mediaInfo = new MediaInfo(data.getSource(),
+                                    metaJson.getString(META_MIME_TYPE), metaJson.getString(META_TITLE),
+                                    metaJson.getString(META_DESCRIPTION), images);
+                            return mediaInfo;
+                        }
+                    }, error);
         } catch (Exception e) {
             Util.postError(listener, new FireTVServiceError(error));
             return;
@@ -237,7 +240,8 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Display an image with metadata
-     * @param url media source
+     *
+     * @param url         media source
      * @param mimeType
      * @param title
      * @param description
@@ -256,12 +260,13 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Play audio/video
-     * @param url media source
+     *
+     * @param url         media source
      * @param mimeType
      * @param title
      * @param description
      * @param iconSrc
-     * @param shouldLoop skipped in current implementation
+     * @param shouldLoop  skipped in current implementation
      * @param listener
      */
     @Override
@@ -276,6 +281,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Stop and close media player on FireTV. In current implementation it's similar to stop method
+     *
      * @param launchSession
      * @param listener
      */
@@ -286,6 +292,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Display an image with metadata
+     *
      * @param mediaInfo
      * @param listener
      */
@@ -296,6 +303,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Play audio/video
+     *
      * @param mediaInfo
      * @param shouldLoop skipped in current implementation
      * @param listener
@@ -400,6 +408,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
 
     /**
      * Seek current media.
+     *
      * @param position time in milliseconds
      * @param listener
      */
@@ -412,6 +421,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
                     position);
             handleVoidAsyncFuture(listener, asyncFuture, error);
         } catch (Exception e) {
+            Log.w(Util.T, "seekException " + e.getMessage());
             Util.postError(listener, new FireTVServiceError(error, e));
         }
     }
@@ -427,6 +437,7 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
             asyncFuture = remoteMediaPlayer.getDuration();
             handleAsyncFuture(listener, asyncFuture, error);
         } catch (Exception e) {
+
             Util.postError(listener, new FireTVServiceError(error, e));
             return;
         }
@@ -567,11 +578,11 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
         }
         handleAsyncFutureWithConversion(listener, asyncFuture,
                 new ConvertResult<MediaLaunchObject, Void>() {
-            @Override
-            public MediaLaunchObject convert(Void data) {
-                return createMediaLaunchObject();
-            }
-        }, error);
+                    @Override
+                    public MediaLaunchObject convert(Void data) {
+                        return createMediaLaunchObject();
+                    }
+                }, error);
     }
 
     private void handleVoidAsyncFuture(final ResponseListener<Object> listener,
@@ -586,8 +597,8 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
     }
 
     private <T> void handleAsyncFuture(final ResponseListener<T> listener,
-                                     final RemoteMediaPlayer.AsyncFuture<T> asyncFuture,
-                                     final String errorMessage) {
+                                       final RemoteMediaPlayer.AsyncFuture<T> asyncFuture,
+                                       final String errorMessage) {
         handleAsyncFutureWithConversion(listener, asyncFuture, new ConvertResult<T, T>() {
             @Override
             public T convert(T data) {
@@ -607,16 +618,20 @@ public class FireTVService extends DeviceService implements MediaPlayer, MediaCo
                 public void futureIsNow(Future<Result> future) {
                     try {
                         Result result = future.get();
+                        Log.w(Util.T, "handleAsyncFutureWithConversion Success ");
                         Util.postSuccess(listener, conversion.convert(result));
                     } catch (ExecutionException e) {
+                        Log.w(Util.T, "FireTVServiceExecutionException " + e.getMessage());
                         Util.postError(listener, new FireTVServiceError(errorMessage,
                                 e.getCause()));
                     } catch (Exception e) {
+                        Log.w(Util.T, "FireTVServiceException " + errorMessage);
                         Util.postError(listener, new FireTVServiceError(errorMessage, e));
                     }
                 }
             });
         } else {
+            Log.w(Util.T, "FireTVServiceException async future is null " + errorMessage);
             Util.postError(listener, new FireTVServiceError(errorMessage));
         }
     }
